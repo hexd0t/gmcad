@@ -16,32 +16,12 @@ HalfEdgeDS::~HalfEdgeDS()
 
 void HalfEdgeDS::createDefaultObject()
 {
-	// WARNING: this example does NOT create a valid topology. It just creates the minimum elements to draw one line.
-	// CARE: for every "new" we need a "delete". if an element is added to the according list, it is deleted automatically within clearDS().
-
-	// create example elements. 	
-	Vertex* v1 = new Vertex;
-	Vertex* v2 = new Vertex;
-	HalfEdge* he1 = new HalfEdge;
-	HalfEdge* he2 = new HalfEdge;
-	Edge* e = new Edge;
-	// set up connections
-	v1->coordinates = Vec3f(1.0f, 2.0f, 3.0f);
-	v2->coordinates = Vec3f(3.0f, 2.0f, 1.0f);
-	he1->startV = v1;
-	he1->nextHE = he2;
-	he2->startV = v2;
-	he2->nextHE = he1;
-	e->he1 = he1;
-	e->he2 = he2;
-	// add elements to the lists
-	vertices.push_back(v1);
-	vertices.push_back(v2);
-	halfEdges.push_back(he1);
-	halfEdges.push_back(he2);
-	edges.push_back(e);
-
-	// TODO: Create a new VALID test object including all topological elements and linkage. The object should be volumetric and consist of at least one hole (H > 0).
+	Solid* s;
+	Loop* l;
+	Vertex* v1;
+	Vertex* v2;
+	MEVVLS(&s, 0, 0, &l, &v1, &v2, Vec3f(1.f, 0.f, 1.f), Vec3f(1.f, 1.f, 1.f));
+	MEV(s, l, v1, nullptr, nullptr, Vec3f(2.f, 0.f, 1.f));
 }
 
 void HalfEdgeDS::clearDS()
@@ -59,6 +39,95 @@ void HalfEdgeDS::clearDS()
 	faces.clear();
 	for (auto *p : solids) delete p;
 	solids.clear();
+}
+
+void HalfEdgeDS::MEVVLS(Solid ** solid, Edge ** edge, Face ** face, Loop ** loop, Vertex ** vertex1, Vertex ** vertex2, const Vec3f & coords1, const Vec3f & coords2)
+{
+	//Neue Datenstrukturen allokieren
+	Solid* s = new Solid();
+	if (solid) *solid = s;
+
+	Vertex* v1 = new Vertex();
+	if (vertex1) *vertex1 = v1;
+
+	Vertex* v2 = new Vertex();
+	if (vertex2) *vertex2 = v2;
+
+	Loop* l = new Loop();
+	if (loop) *loop = l;
+
+	HalfEdge* he1 = nullptr;
+	HalfEdge* he2 = nullptr;
+	Edge* e = Edge::CreateEdge(&he1, &he2);
+	if (edge) *edge = e;
+
+	Face* f = new Face();
+	if (face) *face = f;
+
+	//Korrekte verweise anlegen
+	v1->coordinates = coords1;
+	v2->coordinates = coords2;
+	v1->outgoingHE = he1;
+	v2->outgoingHE = he2;
+
+	he1->setNextHE(he2);
+	he2->setNextHE(he1);
+	he1->toLoop = l;
+	he2->toLoop = l;
+	he1->startV = v1;
+	he2->startV = v2;
+
+	l->toHE = he1;
+	l->toFace = f;
+
+	f->outerLoop = l;
+	f->toSolid = s;
+
+	s->toFace = f;
+
+	//Globale listen pflegen
+	this->faces.push_back(f);
+	this->solids.push_back(s);
+	this->edges.push_back(e);
+	this->halfEdges.push_back(he1);
+	this->halfEdges.push_back(he2);
+	this->vertices.push_back(v1);
+	this->vertices.push_back(v2);
+}
+
+void HalfEdgeDS::MEV(Solid * solid, Loop * loop, Vertex * vertex1, Edge ** edge, Vertex ** vertex2, const Vec3f & coords2)
+{
+	//Neue Datenstrukturen allokieren
+	Vertex* v2 = new Vertex();
+	if (vertex2) *vertex2 = v2;
+
+	HalfEdge* he1 = nullptr;
+	HalfEdge* he2 = nullptr;
+	Edge* e = Edge::CreateEdge(&he1, &he2);
+	if (edge) *edge = e;
+
+	//"Schnitt"-stelle im Loop finden
+	HalfEdge* next = loop->findHalfedgeStartingAt(vertex1);
+	HalfEdge* prev = next->prevHE;
+
+	//Korrekte verweise anlegen
+	v2->coordinates = coords2;
+	v2->outgoingHE = he2;
+
+	prev->setNextHE(he1);
+	he1->setNextHE(he2);
+	he2->setNextHE(next);
+
+	he1->toLoop = loop;
+	he2->toLoop = loop;
+
+	he1->startV = vertex1;
+	he2->startV = v2;
+
+	this->edges.push_back(e);
+	this->halfEdges.push_back(he1);
+	this->halfEdges.push_back(he2);
+	this->vertices.push_back(v2);
 }
 
 std::ostream& operator<< (std::ostream& os, HalfEdgeDS& ds)

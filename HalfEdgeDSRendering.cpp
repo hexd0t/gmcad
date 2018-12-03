@@ -3,6 +3,8 @@
 #include "HalfEdgeDSRendering.h"
 
 #include <GL/glut.h>
+const float VDIAM = 0.10f;
+const float EDIAM = 0.05f;
 
 void renderDS(const HalfEdgeDS& heDS)
 {
@@ -12,7 +14,33 @@ void renderDS(const HalfEdgeDS& heDS)
 
 void renderE(const Edge* e, const Vec3f& color /*= Vec3f(0.0f, 1.0f, 0.0f)*/)
 {
-	// TODO: render the edge with the given color
+	glColor3f(color.x, color.y, color.z);
+	Vec3f p1 = e->he1->startV->coordinates;
+	Vec3f p2 = e->he2->startV->coordinates;
+	Vec3f dir = p2 - p1;
+	float length = dir.length();
+	if (length < 0.00001f) return;
+
+	GLUquadricObj *quadObj;
+
+	glPushMatrix();
+
+	glTranslated(p1.x, p1.y, p1.z);
+
+	if ((dir.x != 0.) || (dir.y != 0.)) {
+		glRotated(atan2(dir.y, dir.x) / RADPERDEG, 0., 0., 1.);
+		glRotated(atan2(sqrt(dir.x*dir.x + dir.y*dir.y), dir.z) / RADPERDEG, 0., 1., 0.);
+	}
+	else if (dir.z < 0) {
+		glRotated(180, 1., 0., 0.);
+	}
+
+	quadObj = gluNewQuadric();
+	gluQuadricDrawStyle(quadObj, GLU_FILL);
+	gluQuadricNormals(quadObj, GLU_SMOOTH);
+	gluCylinder(quadObj, EDIAM*0.5f, EDIAM*0.5f, length, 16, 1);
+	gluDeleteQuadric(quadObj);
+	glPopMatrix();
 }
 
 void renderHE(const HalfEdge* he, const Vec3f& color /*= Vec3f(0.0f, 1.0f, 0.0f)*/)
@@ -22,7 +50,19 @@ void renderHE(const HalfEdge* he, const Vec3f& color /*= Vec3f(0.0f, 1.0f, 0.0f)
 
 void renderV(const Vertex* v, const Vec3f& color /*= Vec3f(1.0f, 0.0f, 1.0f)*/)
 {
-	// TODO: render the vertex with the given color
+	glColor3f(color.x, color.y, color.z);
+	Vec3f p = v->coordinates;
+	GLUquadricObj *quadObj;
+
+	glPushMatrix();
+	glTranslated(p.x, p.y, p.z);
+
+	quadObj = gluNewQuadric();
+	gluQuadricDrawStyle(quadObj, GLU_FILL);
+	gluQuadricNormals(quadObj, GLU_SMOOTH);
+	gluSphere(quadObj, VDIAM * 0.5f, 16, 16);
+	gluDeleteQuadric(quadObj);
+	glPopMatrix();
 }
 
 

@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 	glutInitWindowPosition(300, 200);
 	glutInitWindowSize(600, 400);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-	glutCreateWindow("TU Darmstadt, MBorner"); 
+	glutCreateWindow("Praktikum GMCAD"); 
 	// link functions to certain openGL events
 	glutDisplayFunc(renderScene);
 	glutReshapeFunc(reshape);  
@@ -123,7 +123,7 @@ void renderScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	// lighting from the viewer perspective
-	GLfloat lp[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	GLfloat lp[] = { 0.0f, 0.0f, 0.5f, 1.0f };
 	glLightfv(GL_LIGHT0, GL_POSITION, lp);
 	// translate scene in viewing direction
 	glTranslatef(transX, transY, transZ);  
@@ -131,10 +131,11 @@ void renderScene()
 	glRotatef(angleX, 0.0f, 1.0f, 0.0f);
 	glRotatef(angleY, 1.0f, 0.0f, 0.0f);	
 	// draw data structure (lines) without lighting
-	glDisable(GL_LIGHTING);
+	//glDisable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 	renderDS(heDS);
 	// draw 3D objects with lighting
-	glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHTING);
 	renderHEActive(activeHE);
 	renderCS();	
 	// swap Buffers
@@ -199,8 +200,8 @@ void mouseMoved(int x, int y)
 	// translation in xy
 	if (mouseButton == GLUT_MIDDLE_BUTTON) 
 	{
-		transX += 0.2f * (x-mouseX) * mouseSensitivy;
-		transY -= 0.2f * (y-mouseY) * mouseSensitivy;
+		transX += 0.05f * (x-mouseX) * mouseSensitivy;
+		transY -= 0.05f * (y-mouseY) * mouseSensitivy;
 		glutPostRedisplay();
 	}
 	// update mouse for next relative movement

@@ -51,6 +51,7 @@ struct Loop
 	Loop();
 	
 	// TODO: create methods for creating and traversing its elements
+	HalfEdge* findHalfedgeStartingAt(Vertex* v);
 };
 
 struct Edge
@@ -59,7 +60,7 @@ struct Edge
 	HalfEdge* he2;
 	Edge();
 	
-	// TODO: create methods for creating and traversing its elements
+	static Edge* CreateEdge(HalfEdge** he1, HalfEdge** he2);
 };
 
 struct HalfEdge
@@ -71,7 +72,7 @@ struct HalfEdge
 	Vertex* startV;			// vertex at the tail of the half edge
 	HalfEdge();
 	
-	// TODO: create methods for creating and traversing its elements
+	void setNextHE(HalfEdge* next);
 };
 
 struct Vertex
