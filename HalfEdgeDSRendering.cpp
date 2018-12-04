@@ -5,7 +5,6 @@
 #include <GL/glut.h>
 const float VDIAM = 0.10f;
 const float EDIAM = 0.04f;
-const float ARROWDIM = 0.03f;
 
 void renderDS(const HalfEdgeDS& heDS)
 {
@@ -44,12 +43,12 @@ void renderE(const Edge* e, const Vec3f& color)
      glPopMatrix();
 }
 
-void renderHE(const HalfEdge* he, const Vec3f& color)
+void renderHE(const HalfEdge* he, const Vec3f& color, const float dim)
 {
      Vec3f start = he->startV->coordinates;
      Vec3f end = he->getEdgeSibling()->startV->coordinates;
      glColor3f(color.x, color.y, color.z);
-     renderArrow(start, end, ARROWDIM);
+     renderArrow(start, end, dim);
 }
 
 void renderV(const Vertex* v, const Vec3f& color)

@@ -17,7 +17,7 @@
 void renderDS(const HalfEdgeDS& heDS);
 
 // render one half edge
-void renderHE(const HalfEdge* he, const Vec3f& color = Vec3f(0.0f, 0.9f, 0.05f));
+void renderHE(const HalfEdge* he, const Vec3f& color = Vec3f(0.0f, 0.9f, 0.05f), const float dim = 0.03f);
 
 // render one edge
 void renderE(const Edge* e, const Vec3f& color = Vec3f(0.3f, 0.9f, 0.3f));

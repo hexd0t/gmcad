@@ -426,7 +426,8 @@ float HalfEdgeDS::EulerPoincareRings()
     float R = S - (V - E + F - H) * 0.5f;
 
     //Debug output:
-    std::cout << S << " - (" << V << " - " << E << " + " << F << " - " << H << ") / 2 = " << R << std::endl;
+    std::cout  << "> S - (V - E + F - H)/2 = " <<
+        S << " - (" << V << " - " << E << " + " << F << " - " << H << ") / 2 = " << R << std::endl;
     return R;
 }
 

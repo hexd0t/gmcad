@@ -32,6 +32,7 @@ int main(int argc, char** argv)
      std::cout << heDS << std::endl << std::endl;
      if (heDS.getHalfEdges().size() > 0) activeHE = heDS.getHalfEdges().front();
      else activeHE = nullptr;
+     selectedHE = nullptr;
      // activate main loop
      glutMainLoop();
      return 0;
@@ -134,12 +135,14 @@ void renderScene()
 	 glEnable(GL_LIGHTING);
      renderDS(heDS);
 
+     if(selectedHE)
+        renderHE(selectedHE, Vec3f(0.004f, 0.337f, 0.141f), 0.027f);
      renderHEActive(activeHE);
      for(auto loopIterator = activeHE->nextHE;
 		 loopIterator != activeHE;
 		 loopIterator = loopIterator->nextHE)
 	 {
-          renderHE(loopIterator, Vec3f(0.004f, 0.141f, 0.337f));
+          renderHE(loopIterator, Vec3f(0.004f, 0.141f, 0.337f), 0.023);
      }
      renderCS();
 
@@ -234,6 +237,61 @@ void keyPressed(unsigned char key, int x, int y)
 	case 'E':
         std::cout << "Euler-Poincare R = " << heDS.EulerPoincareRings() << std::endl;
 		break;
+    case '\r':
+    case '\n':
+    {
+        std::cout << "Enter EulerOp {MEV, MVE, MEL}: " << std::flush;
+        std::string eulerop;
+        std::cin >> eulerop;
+        if (eulerop == "MEV") {
+            std::cout << "Enter coordinates for new Vertex [x y z]: ";
+            float x, y, z;
+            std::cin >> x;
+            std::cin >> y;
+            std::cin >> z;
+            heDS.MEV(activeHE->toLoop->toFace->toSolid, activeHE->toLoop, activeHE->startV,
+                nullptr, nullptr, Vec3f(x, y, z));
+        }
+        else if (eulerop == "MVE") {
+            std::cout << "Enter coordinates for new Vertex [x y z]: ";
+            float x, y, z;
+            std::cin >> x;
+            std::cin >> y;
+            std::cin >> z;
+            heDS.MVE(activeHE->toLoop->toFace->toSolid, activeHE->toEdge,
+                nullptr, nullptr, Vec3f(x, y, z));
+        }
+        else if (eulerop == "MEL") {
+            if (!selectedHE || selectedHE->startV == activeHE->startV) {
+                std::cout << "MEL requires two distinct Vertices to be chosen first!";
+                break;
+            }
+            auto loopsList = heDS.getLoops();
+            Loop* commonLoop = nullptr;
+            for (auto iter = loopsList.begin(); iter != loopsList.end(); ++iter) {
+                if ((*iter)->findHalfedgeStartingAt(selectedHE->startV) &&
+                    (*iter)->findHalfedgeStartingAt(activeHE->startV)) {
+                    commonLoop = *iter;
+                    break;
+                }
+            }
+            if (!commonLoop) {
+                std::cout << "The selected vertices share no common loop!";
+                break;
+            }
+            heDS.MEL(activeHE->toLoop->toFace->toSolid, commonLoop, selectedHE->startV, activeHE->startV,
+                nullptr, nullptr, nullptr);
+            selectedHE = nullptr;
+        }
+        else {
+            std::cout << "Unrecognized" << std::endl;
+        }
+        break;
+    }
+    case 'f':
+    case 'F':
+        selectedHE = activeHE;
+        break;
 	}
 	glutPostRedisplay();
 }
@@ -285,6 +343,8 @@ void coutHelp()
      std::cout << "ESC: exit" << std::endl;
      std::cout << "H: show this (H)elp file" << std::endl;
      std::cout << "R: (R)eset view" << std::endl;
+     std::cout << "Enter: Enter Eulerop parameters in terminal" << std::endl;
+     std::cout << "F: Select current HE as first parameter for Eulerop" << std::endl;
      std::cout << "====== DS NAVIGATION =====" << std::endl;
 	 std::cout << "D: Next half edge in current loop" << std::endl;
 	 std::cout << "A: Prev half edge in current loop" << std::endl;

@@ -22,6 +22,7 @@
 
 HalfEdgeDS heDS;          // instance of our data structure
 HalfEdge* activeHE;       // the currently active half edge
+HalfEdge* selectedHE;     // the selected half edge (for EulerOP usage)
 
 // do not modify data below unless you know what you do
 // camera Information
