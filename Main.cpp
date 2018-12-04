@@ -240,7 +240,7 @@ void keyPressed(unsigned char key, int x, int y)
     case '\r':
     case '\n':
     {
-        std::cout << "Enter EulerOp {MEV, MVE, MEL}: " << std::flush;
+        std::cout << "Enter EulerOp {MEV, MVE, MEL, KEMH}: " << std::flush;
         std::string eulerop;
         std::cin >> eulerop;
         if (eulerop == "MEV") {
@@ -282,6 +282,10 @@ void keyPressed(unsigned char key, int x, int y)
             heDS.MEL(activeHE->toLoop->toFace->toSolid, commonLoop, selectedHE->startV, activeHE->startV,
                 nullptr, nullptr, nullptr);
             selectedHE = nullptr;
+        }
+        else if (eulerop == "KEMH") {
+            heDS.KEMH(activeHE->toLoop->toFace->toSolid, activeHE->toEdge,
+                activeHE->startV, nullptr);
         }
         else {
             std::cout << "Unrecognized" << std::endl;
@@ -343,8 +347,13 @@ void coutHelp()
      std::cout << "ESC: exit" << std::endl;
      std::cout << "H: show this (H)elp file" << std::endl;
      std::cout << "R: (R)eset view" << std::endl;
-     std::cout << "Enter: Enter Eulerop parameters in terminal" << std::endl;
+     std::cout << "Enter: Enter Eulerop parameters in terminal (see \"USER EULERS\" below)" << std::endl;
      std::cout << "F: Select current HE as first parameter for Eulerop" << std::endl;
+     std::cout << "====== USER EULERS ======" << std::endl;
+     std::cout << "MEV: Select Vertex1 by navigating to a HE starting there, enter coordinates in terminal" << std::endl;
+     std::cout << "MVE: Select Edge to be split by navigating to a child HE, enter coordinates in terminal" << std::endl;
+     std::cout << "MEL: Select Vertex1 by navigating to a HE and selecting it (F), then activate a Vertex2-originating HE" << std::endl;
+     std::cout << "KEMH: Select Edge to be killed by navigating to the HE going FROM THE OUTSIDE to the new inner loop" << std::endl;
      std::cout << "====== DS NAVIGATION =====" << std::endl;
 	 std::cout << "D: Next half edge in current loop" << std::endl;
 	 std::cout << "A: Prev half edge in current loop" << std::endl;
