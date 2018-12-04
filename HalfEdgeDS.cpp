@@ -3,6 +3,77 @@
 #include <stdio.h>          // cout
 #include <iostream>         // cout
 #include <numeric>
+#include <stdexcept>
+
+void HalfEdgeDS::addSolid(Solid * s)
+{
+    if (!s->toFace)
+        throw std::runtime_error("Tried to create a solid without a face reference!");
+    this->solids.push_back(s);
+}
+
+void HalfEdgeDS::addFace(Face * f)
+{
+    if (!f->toSolid)
+        throw std::runtime_error("Tried to create a face without a solid reference!");
+    if (!f->outerLoop)
+        throw std::runtime_error("Tried to create a face without an outer loop reference!");
+    if (f->outerLoop->toFace != f)
+        throw std::runtime_error("Tried to create a face with an outer loop referencing another face!");
+    this->faces.push_back(f);
+}
+
+void HalfEdgeDS::addLoop(Loop * l)
+{
+    if (!l->toFace)
+        throw std::runtime_error("Tried to create a loop without a face reference!");
+    if (!l->nextLoop || !l->prevLoop)
+        throw std::runtime_error("Tried to create a loop without a linked list!");
+    int count = 0;
+    for (auto iter = l->nextLoop; iter != l; iter = iter->nextLoop) {
+        if(++count > 5000)
+            throw std::runtime_error("Tried to create a loop with a noncylic linked list (never returns to new loop)!");
+    }
+    if (!l->toHE)
+        throw std::runtime_error("Tried to create a loop without a HE reference!");
+    if(l->toHE->toLoop != l)
+        throw std::runtime_error("Tried to create a loop with a HE referencing another loop!");
+
+    this->loops.push_back(l);
+}
+
+void HalfEdgeDS::addEdge(Edge * e)
+{
+    if (!e->he1 || !e->he2)
+        throw std::runtime_error("Tried to create an edge missing a HE!");
+    if (e->he1->toEdge != e || e->he2->toEdge != e)
+        throw std::runtime_error("Tried to create an edge with foreign HEs!");
+    this->edges.push_back(e);
+}
+
+void HalfEdgeDS::addHE(HalfEdge * e)
+{
+    if(!e->toLoop)
+        throw std::runtime_error("Tried to create an HE missing a loop reference!");
+    if(!e->toEdge)
+        throw std::runtime_error("Tried to create a HE missing an edge!");
+    if (!e->prevHE || !e->nextHE)
+        throw std::runtime_error("Tried to create a HE missing prev/next references!");
+    if(!e->startV)
+        throw std::runtime_error("Tried to create a HE missing a start vertex!");
+    if(e->nextHE->prevHE != e || e->prevHE->nextHE != e)
+        throw std::runtime_error("Tried to create a HE with invalid neighbor references!");
+    this->halfEdges.push_back(e);
+}
+
+void HalfEdgeDS::addVertex(Vertex * v)
+{
+    if(!v->outgoingHE)
+        throw std::runtime_error("Tried to create a Vertex missing an outgoing HE!");
+    if (v->outgoingHE->startV != v)
+        throw std::runtime_error("Tried to create a Vertex with a foreign outgoing HE!");
+    this->vertices.push_back(v);
+}
 
 HalfEdgeDS::HalfEdgeDS()
 {
@@ -18,21 +89,28 @@ HalfEdgeDS::~HalfEdgeDS()
 void HalfEdgeDS::createDefaultObject()
 {
      Solid* s;
-     Loop* l;
-	 Loop* l2;
-	 Loop* l3;
-     Vertex* v1;
-     Vertex* v2;
-     Vertex* v3;
-     Vertex* v4;
+     Loop* l, *l2, *l3;
+     Vertex *v1, *v2, *v3, *v4;
      Edge* e;
-     MEVVLS(&s, nullptr, nullptr, &l, &v1, &v2, Vec3f(1.f, 0.f, 1.f), Vec3f(2.f, 0.f, 1.f));
-     MEV(s, l, v1, nullptr, &v3, Vec3f(1.f, 1.f, 1.f));
-     MEV(s, l, v1, nullptr, &v4, Vec3f(1.f, 0.f, 2.f));
+     MEVVLS(&s, nullptr, nullptr, &l, &v1, &v2, Vec3f(1.f, 0.f, 1.f), Vec3f(3.f, 0.f, 1.f));
+     MEV(s, l, v1, nullptr, &v3, Vec3f(1.f, 2.f, 1.f));
+     MEV(s, l, v1, nullptr, &v4, Vec3f(1.f, 0.f, 3.f));
+
      MEL(s, l, v2, v3, &e, &l2, nullptr);
      MEL(s, l, v2, v4, nullptr, &l3, nullptr);
      MEL(s, l3, v3, v4, nullptr, nullptr, nullptr);
-     MVE(s, e, nullptr, nullptr, Vec3f(1.5f, 0.5f, 1.f));
+
+     MVE(s, e, nullptr, nullptr, Vec3f(2.f, 1.f, 1.f));
+
+     Edge* constructionEdge;
+     Vertex *iV1, *iV2, *iV3;
+     MEV(s, l, v1, &constructionEdge, &iV1, Vec3f(1.5f, 0.f, 1.5f));
+     MEV(s, l, iV1, nullptr, &iV2, Vec3f(2.f, 0.f, 1.5f));
+     MEV(s, l, iV1, nullptr, &iV3, Vec3f(1.5f, 0.f, 2.f));
+
+     MEL(s, l, iV2, iV3, nullptr, nullptr, nullptr);
+
+     KEMH(s, constructionEdge, v1, nullptr);
 }
 
 void HalfEdgeDS::clearDS()
@@ -97,13 +175,13 @@ void HalfEdgeDS::MEVVLS(Solid ** solid, Face** face, Edge ** edge, Loop ** loop,
      s->toFace = f;
 
      //Globale Listen pflegen
-     this->faces.push_back(f);
-     this->solids.push_back(s);
-     this->edges.push_back(e);
-     this->halfEdges.push_back(he1);
-     this->halfEdges.push_back(he2);
-     this->vertices.push_back(v1);
-     this->vertices.push_back(v2);
+     this->addFace(f);
+     this->addSolid(s);
+     this->addEdge(e);
+     this->addHE(he1);
+     this->addHE(he2);
+     this->addVertex(v1);
+     this->addVertex(v2);
 }
 
 void HalfEdgeDS::MEV(Solid * solid, Loop * loop, Vertex * vertex1, Edge ** edge, Vertex ** vertex2, const Vec3f & coords2)
@@ -120,7 +198,7 @@ void HalfEdgeDS::MEV(Solid * solid, Loop * loop, Vertex * vertex1, Edge ** edge,
      //"Schnitt"-stelle im Loop finden
      HalfEdge* nextHE = loop->findHalfedgeStartingAt(vertex1);
      if (!nextHE)
-          throw;
+          throw std::runtime_error("MEV: Vertex1 needs to be visited by loop!");
      HalfEdge* prevHE = nextHE->prevHE;
 
      //Neue Datenstrukturen allokieren
@@ -147,28 +225,29 @@ void HalfEdgeDS::MEV(Solid * solid, Loop * loop, Vertex * vertex1, Edge ** edge,
      he2->startV = v2;
 
      //Globale Listen pflegen
-     this->edges.push_back(e);
-     this->halfEdges.push_back(he1);
-     this->halfEdges.push_back(he2);
-     this->vertices.push_back(v2);
+     this->addEdge(e);
+     this->addHE(he1);
+     this->addHE(he2);
+     this->addVertex(v2);
 }
 
 void HalfEdgeDS::MEL(Solid * solid, Loop * loop1, Vertex * vertex1, Vertex * vertex2, Edge ** edge, Loop ** loop2, Face** face)
 {
      /**********************************************************************\
-      *  Vorher:                        *  Nacher:                         *
+      *  Vorher:                        *  Nacher:      <ogF>              *
       *     ╖ v1prev       v2next ╖     *     ╖ v1prev         v2next ╖    *
       *     ╙                     ╙     *     ╙          he1          ╙    *
-      *  V1 ○                     ○ V2  *  V1 ○╒═════════════════════╛○ V2 *
+      *  V1 ○        <ogF>        ○ V2  *  V1 ○╒═════════════════════╛○ V2 *
       *     ╖                     ╖     *     ╖          he2          ╖    *
       *     ╙ v1next       v2prev ╙     *     ╙ v1next         v2prev ╙    *
+      *                                                  <f>               *
      \**********************************************************************/
 
      //"Schnitt"-stellen im Loop finden
      HalfEdge* v1nextHE = loop1->findHalfedgeStartingAt(vertex1);
      HalfEdge* v2nextHE = loop1->findHalfedgeStartingAt(vertex2);
      if (!v1nextHE || !v2nextHE)
-          throw;
+          throw std::runtime_error("MEL: Vertex 1 and 2 need to be visited by the selected loop!");
      HalfEdge* v1prevHE = v1nextHE->prevHE;
      HalfEdge* v2prevHE = v2nextHE->prevHE;
 
@@ -200,22 +279,22 @@ void HalfEdgeDS::MEL(Solid * solid, Loop * loop1, Vertex * vertex1, Vertex * ver
 
      he1->startV = vertex1;
      he2->startV = vertex2;
-     he1->toLoop = l2;
+     he1->toLoop = loop1;
+     he2->toLoop = l2;
 
      l2->toHE = he2;
-     for (HalfEdge* iter = he2; iter != he2; iter = iter->nextHE) {
-          iter->toLoop = l2;
-     }
+     loop1->fixHEReferences();
+     l2->fixHEReferences();
 
      //ToDo:
      //  Welche inner Loops des Original-Face liegen jetzt im neuen Face?
 
      //Globale Listen pflegen
-     this->edges.push_back(e);
-     this->halfEdges.push_back(he1);
-     this->halfEdges.push_back(he2);
-     this->loops.push_back(l2);
-     this->faces.push_back(f);
+     this->addEdge(e);
+     this->addHE(he1);
+     this->addHE(he2);
+     this->addLoop(l2);
+     this->addFace(f);
 }
 
 void HalfEdgeDS::MVE(Solid * solid, Edge * edge1, Vertex ** vertex, Edge ** edge2, const Vec3f & coords)
@@ -249,6 +328,8 @@ void HalfEdgeDS::MVE(Solid * solid, Edge * edge1, Vertex ** vertex, Edge ** edge
      e2he2->startV = e1he2->startV;
      e2he1->startV = v;
      e1he2->startV = v;
+     e2he1->toLoop = e1he1->toLoop;
+     e2he2->toLoop = e1he2->toLoop;
 
      v->coordinates = coords;
      v->outgoingHE = e1he2;
@@ -257,10 +338,77 @@ void HalfEdgeDS::MVE(Solid * solid, Edge * edge1, Vertex ** vertex, Edge ** edge
      }
 
      //Globale Listen pflegen
-     this->edges.push_back(e2);
-     this->halfEdges.push_back(e2he1);
-     this->halfEdges.push_back(e2he2);
-     this->vertices.push_back(v);
+     this->addEdge(e2);
+     this->addHE(e2he1);
+     this->addHE(e2he2);
+     this->addVertex(v);
+}
+
+void HalfEdgeDS::KEMH(Solid * solid, Edge * edge, Vertex * outerVertex, Loop ** innerLoop)
+{
+    /************************************************************************\
+      *  Vorher:                          *  Nacher:                         *
+      *     ╖ v1prev         v2next ╖     *     ╖ v1prev         v2next ╖    *
+      *     ╙          he1          ╙     *     ╙                       ╙    *
+      *  V1 ○╒═════════════════════╛○ V2  *  V1 ○                       ○ V2 *
+      *     ╖          he2          ╖     *     ╖                       ╖    *
+      *     ╙ v1next         v2prev ╙     *     ╙ v1next         v2prev ╙    *
+     \************************************************************************/
+    if (edge->he1->toLoop != edge->he2->toLoop)
+        throw std::runtime_error("KEMH: HE1 and HE2 of deleted edge need to be on the same loop! (Hint: looking for KEL?)");
+    if(!edge->he1->toLoop->findHalfedgeStartingAt(outerVertex))
+        throw std::runtime_error("KEMH: OuterVertex needs to be visited by the loop about to be split!");
+
+    //Neue Datenstrukturen allokieren
+    Loop* l2 = new Loop();
+    if (innerLoop) *innerLoop = l2;
+
+    //Referenzen sammeln
+    Loop* l1 = edge->he1->toLoop;
+    HalfEdge* v1prevHE = edge->he1->prevHE;
+    HalfEdge* v2nextHE = edge->he1->nextHE;
+    HalfEdge* v2prevHE = edge->he2->prevHE;
+    HalfEdge* v1nextHE = edge->he2->nextHE;
+    Face* f = l1->toFace;
+
+    //Loops trennen
+    v1prevHE->setNextHE(v1nextHE);
+    v2prevHE->setNextHE(v2nextHE);
+
+    //Überprüfen, ob "v1" oder "v2" auf dem äußeren Loop liegt
+    l1->toHE = v1nextHE;
+    if (l1->findHalfedgeStartingAt(outerVertex)) {
+        l2->toHE = v2nextHE;
+    }
+    else
+    {
+        l1->toHE = v2nextHE;
+        l2->toHE = v1nextHE;
+    }
+    //Half-Edges auf innerem Loop auf diesen verweisen lassen
+    l2->fixHEReferences();
+    
+    //Auf neuen inneren Loop von Face aus verweisen
+    if (f->innerLoop) { //Das Face hat bereits innere Loops, in Liste einfügen
+        l2->setNextLoop(f->innerLoop->nextLoop);
+        f->innerLoop->setNextLoop(l2);
+    }
+    else
+    { //Der erste innere Loop in diesem Face
+        f->innerLoop = l2;
+    }
+
+    l2->toFace = f;
+
+    //Globale Listen pflegen
+    this->halfEdges.remove(edge->he1);
+    this->halfEdges.remove(edge->he2);
+    this->edges.remove(edge);
+    this->addLoop(l2);
+
+    delete edge->he1;
+    delete edge->he2;
+    delete edge;
 }
 
 float HalfEdgeDS::EulerPoincareRings()

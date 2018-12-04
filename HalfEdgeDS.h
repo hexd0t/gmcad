@@ -33,6 +33,13 @@ protected:
      std::list<HalfEdge*> halfEdges;
      std::list<Vertex*> vertices;
 
+     void addSolid(Solid* s);
+     void addFace(Face* f);
+     void addLoop(Loop* l);
+     void addEdge(Edge* e);
+     void addHE(HalfEdge* e);
+     void addVertex(Vertex* v);
+
 public:
 
      // empty constructor which creates an example object
@@ -64,6 +71,8 @@ public:
      void MEV(Solid* solid, Loop* loop, Vertex* vertex1, Edge** edge, Vertex** vertex2, const Vec3f & coords2);
      void MEL(Solid* solid, Loop* loop1, Vertex* vertex1, Vertex* vertex2, Edge** edge, Loop** loop2, Face** face);
      void MVE(Solid* solid, Edge* edge1, Vertex** vertex, Edge** edge2, const Vec3f& coords);
+
+     void KEMH(Solid* solid, Edge* edge, Vertex* outerVertex, Loop** innerLoop);
 
      // Euler-Poincare formula
 	 float EulerPoincareRings();

@@ -52,13 +52,18 @@ struct Loop
      
      // TODO: create methods for creating and traversing its elements
      HalfEdge* findHalfedgeStartingAt(Vertex* v);
+     void fixHEReferences();
+     void setNextLoop(Loop* next);
 };
 
 struct Edge
 {
+protected:
+     Edge();
+
+public:
      HalfEdge* he1;
      HalfEdge* he2;
-     Edge();
      
      static Edge* CreateEdge(HalfEdge** he1, HalfEdge** he2);
 };

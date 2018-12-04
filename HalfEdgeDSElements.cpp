@@ -49,8 +49,21 @@ HalfEdge * Loop::findHalfedgeStartingAt(Vertex * v)
      } while (currentHE->startV != v && currentHE != this->toHE);
      return currentHE == this->toHE ? nullptr : currentHE;
 }
-     
-// TODO: create methods for creating and traversing its elements
+
+void Loop::fixHEReferences()
+{
+    HalfEdge* iter = toHE;
+    do {
+        iter->toLoop = this;
+        iter = iter->nextHE;
+    } while (iter != toHE);
+}
+
+void Loop::setNextLoop(Loop * next)
+{
+    this->nextLoop = next;
+    next->prevLoop = this;
+}
 
 
 Edge::Edge()
