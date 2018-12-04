@@ -17,13 +17,13 @@
 void renderDS(const HalfEdgeDS& heDS);
 
 // render one half edge
-void renderHE(const HalfEdge* he, const Vec3f& color = Vec3f(0.0f, 1.0f, 0.0f));
+void renderHE(const HalfEdge* he, const Vec3f& color = Vec3f(0.0f, 0.9f, 0.05f));
 
 // render one edge
-void renderE(const Edge* e, const Vec3f& color = Vec3f(0.0f, 1.0f, 0.0f));
+void renderE(const Edge* e, const Vec3f& color = Vec3f(0.05f, 0.9f, 0.0f));
 
 // render one vertex
-void renderV(const Vertex* v, const Vec3f& color = Vec3f(1.0f, 0.0f, 1.0f));
+void renderV(const Vertex* v, const Vec3f& color = Vec3f(0.9f, 0.05f, 0.7f));
 
 // special rendering for an selected half edge
 void renderHEActive(const HalfEdge* he);

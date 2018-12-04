@@ -12,16 +12,16 @@
 //   * basic navigation and basic pipeline rendering                         //
 // ========================================================================= //
 
-#include <GL/glut.h>	// openGL helper
+#include <GL/glut.h>
 
-#include "HalfEdgeDS.h"	// our half edge data structure
+#include "HalfEdgeDS.h"  // our half edge data structure
 
 // ===================
 // === GLOBAL DATA ===
 // ===================
 
-HalfEdgeDS heDS;		// instance of our data structure
-HalfEdge* activeHE;		// the currently active half edge
+HalfEdgeDS heDS;          // instance of our data structure
+HalfEdge* activeHE;       // the currently active half edge
 
 // do not modify data below unless you know what you do
 // camera Information
