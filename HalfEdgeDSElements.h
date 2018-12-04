@@ -39,7 +39,7 @@ struct Face
      Loop* innerLoop;          // to a possible hole. Can be null_ptr. Multiple holes are accessible through innerLoop->nextLoop.
      Face();
 
-     // TODO: create methods for creating and traversing its elements
+     int countInnerLoops() const;
 };
 
 struct Loop

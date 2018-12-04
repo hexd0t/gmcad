@@ -230,6 +230,10 @@ void keyPressed(unsigned char key, int x, int y)
 	case 'Q':
 		activeHE = activeHE->getEdgeSibling();
 		break;
+	case 'e':
+	case 'E':
+        std::cout << "Euler-Poincare R = " << heDS.EulerPoincareRings() << std::endl;
+		break;
 	}
 	glutPostRedisplay();
 }
@@ -287,6 +291,7 @@ void coutHelp()
 	 std::cout << "W: Next loop on current surface" << std::endl;
 	 std::cout << "S: Prev loop on current surface" << std::endl;
 	 std::cout << "Q: Switch to sibling half edge" << std::endl;
+	 std::cout << "E: Calulate Euler-Poincare" << std::endl;
      std::cout << "==========================" << std::endl;
      std::cout << std::endl;
 }

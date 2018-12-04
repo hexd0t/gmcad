@@ -17,9 +17,19 @@ Face::Face()
      , innerLoop(nullptr)
 {
 }
-     
-// TODO: create methods for creating and traversing its elements
 
+int Face::countInnerLoops() const
+{
+    int count = 0;
+    if (innerLoop) {
+        auto iter = innerLoop;
+        do {
+            ++count;
+            iter = iter->nextLoop;
+        } while (iter != innerLoop);
+    }
+    return count;
+}
 
 Loop::Loop()
      : toFace(nullptr)

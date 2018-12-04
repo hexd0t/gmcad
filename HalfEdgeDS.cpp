@@ -2,6 +2,7 @@
 
 #include <stdio.h>          // cout
 #include <iostream>         // cout
+#include <numeric>
 
 HalfEdgeDS::HalfEdgeDS()
 {
@@ -260,6 +261,25 @@ void HalfEdgeDS::MVE(Solid * solid, Edge * edge1, Vertex ** vertex, Edge ** edge
      this->halfEdges.push_back(e2he1);
      this->halfEdges.push_back(e2he2);
      this->vertices.push_back(v);
+}
+
+float HalfEdgeDS::EulerPoincareRings()
+{
+    // V - E + F = 2(S-R) + H  <=> R = S-(V-E+F-H)/2
+    // Bei uns gilt Shell = Solid, da keine inneren Shells unterstützt werden
+    float S = solids.size();
+    float V = vertices.size();
+    float E = edges.size();
+    float F = faces.size();
+    auto calcHoles = [](int currentCount, Face* f) {
+        return currentCount + f->countInnerLoops();
+    };
+    int H = std::accumulate(faces.begin(), faces.end(), 0, calcHoles);
+    float R = S - (V - E + F - H) * 0.5f;
+
+    //Debug output:
+    std::cout << S << " - (" << V << " - " << E << " + " << F << " - " << H << ") / 2 = " << R << std::endl;
+    return R;
 }
 
 std::ostream& operator<< (std::ostream& os, HalfEdgeDS& ds)
