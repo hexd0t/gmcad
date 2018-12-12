@@ -47,7 +47,7 @@ HalfEdge * Loop::findHalfedgeStartingAt(Vertex * v)
      do {
           currentHE = currentHE->nextHE;
      } while (currentHE->startV != v && currentHE != this->toHE);
-     return currentHE == this->toHE ? nullptr : currentHE;
+     return currentHE->startV == v ? currentHE : nullptr;
 }
 
 void Loop::fixHEReferences()

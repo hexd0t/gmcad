@@ -4,6 +4,7 @@
 #include <math.h>          // fmod
 #include <stdio.h>          // cout
 #include <iostream>          // cout
+#include <vector>
 
 #include "HalfEdgeDSRendering.h"     // visualizing the data structure
 
@@ -157,92 +158,92 @@ void renderScene()
 
 void keyPressed(unsigned char key, int x, int y)
 {
-	switch (key)
-	{
-		// ESC => exit
-	case 27:
-		exit(0);
-		break;
-		// help file
-	case 'h':
-	case 'H':
-		coutHelp();
-		break;
-		// reset view
-	case 'r':
-	case 'R':
-		setDefaults();
-		glutPostRedisplay();     // use this whenever 3D data changed to redraw the scene
-		break;
-		//Highlight Navigation
-	case 'w':
-	case 'W': //cycle loops on current face
-	{
-		Loop* currentLoop = activeHE->toLoop;
-		Face* currentFace = currentLoop->toFace;
-		if (currentLoop == currentFace->outerLoop) { //jump to inner loops
-			if (currentFace->innerLoop) {
-				activeHE = currentFace->innerLoop->toHE;
-			}
-			else {
-				std::cout << "Current Face has no inner loops!" << std::endl;
-			}
-		}
-		else {
-			if (currentLoop->nextLoop == currentFace->innerLoop) { //cycled through all inner, jump to outer
-				activeHE = currentFace->outerLoop->toHE;
-			}
-			else {
-				activeHE = currentLoop->nextLoop->toHE;
-			}
-		}
-		break;
-	}
-	case 's':
-	case 'S': //rev cycle loops on current face
-	{
-		Loop* currentLoop = activeHE->toLoop;
-		Face* currentFace = currentLoop->toFace;
-		if (currentLoop == currentFace->outerLoop) { //jump to inner loops
-			if (currentFace->innerLoop) {
-				activeHE = currentFace->innerLoop->prevLoop->toHE;
-			}
-			else {
-				std::cout << "Current Face has no inner loops!" << std::endl;
-			}
-		}
-		else {
-			if (currentLoop->prevLoop == currentFace->innerLoop->prevLoop) { //cycled through all inner, jump to outer
-				activeHE = currentFace->outerLoop->toHE;
-			}
-			else {
-				activeHE = currentLoop->prevLoop->toHE;
-			}
-		}
-		break;
-	}
-	case 'd':
-	case 'D':
-		activeHE = activeHE->nextHE;
-		break;
-	case 'a':
-	case 'A':
-		activeHE = activeHE->prevHE;
-		break;
-	case 'q':
-	case 'Q':
-		activeHE = activeHE->getEdgeSibling();
-		break;
-	case 'e':
-	case 'E':
+    switch (key)
+    {
+        // ESC => exit
+    case 27:
+        exit(0);
+        break;
+        // help file
+    case 'h':
+    case 'H':
+        coutHelp();
+        break;
+        // reset view
+    case 'r':
+    case 'R':
+        setDefaults();
+        glutPostRedisplay();     // use this whenever 3D data changed to redraw the scene
+        break;
+        //Highlight Navigation
+    case 'w':
+    case 'W': //cycle loops on current face
+    {
+        Loop* currentLoop = activeHE->toLoop;
+        Face* currentFace = currentLoop->toFace;
+        if (currentLoop == currentFace->outerLoop) { //jump to inner loops
+            if (currentFace->innerLoop) {
+                activeHE = currentFace->innerLoop->toHE;
+            }
+            else {
+                std::cout << "Current Face has no inner loops!" << std::endl;
+            }
+        }
+        else {
+            if (currentLoop->nextLoop == currentFace->innerLoop) { //cycled through all inner, jump to outer
+                activeHE = currentFace->outerLoop->toHE;
+            }
+            else {
+                activeHE = currentLoop->nextLoop->toHE;
+            }
+        }
+        break;
+    }
+    case 's':
+    case 'S': //rev cycle loops on current face
+    {
+        Loop* currentLoop = activeHE->toLoop;
+        Face* currentFace = currentLoop->toFace;
+        if (currentLoop == currentFace->outerLoop) { //jump to inner loops
+            if (currentFace->innerLoop) {
+                activeHE = currentFace->innerLoop->prevLoop->toHE;
+            }
+            else {
+                std::cout << "Current Face has no inner loops!" << std::endl;
+            }
+        }
+        else {
+            if (currentLoop->prevLoop == currentFace->innerLoop->prevLoop) { //cycled through all inner, jump to outer
+                activeHE = currentFace->outerLoop->toHE;
+            }
+            else {
+                activeHE = currentLoop->prevLoop->toHE;
+            }
+        }
+        break;
+    }
+    case 'd':
+    case 'D':
+        activeHE = activeHE->nextHE;
+        break;
+    case 'a':
+    case 'A':
+        activeHE = activeHE->prevHE;
+        break;
+    case 'q':
+    case 'Q':
+        activeHE = activeHE->getEdgeSibling();
+        break;
+    case 'e':
+    case 'E':
         std::cout << "Euler-Poincare R = " << heDS.EulerPoincareRings() << std::endl;
-		break;
+        break;
     case '\r':
     case '\n':
     {
         std::cout << "Enter EulerOp {MEV, MVE, MEL, KEMH}: " << std::flush;
-        std::string eulerop;
-        std::cin >> eulerop;
+        std::string eulerop = "Torus";
+        //std::cin >> eulerop;
         if (eulerop == "MEV") {
             std::cout << "Enter coordinates for new Vertex [x y z]: ";
             float x, y, z;
@@ -266,15 +267,7 @@ void keyPressed(unsigned char key, int x, int y)
                 std::cout << "MEL requires two distinct Vertices to be chosen first!";
                 break;
             }
-            auto loopsList = heDS.getLoops();
-            Loop* commonLoop = nullptr;
-            for (auto iter = loopsList.begin(); iter != loopsList.end(); ++iter) {
-                if ((*iter)->findHalfedgeStartingAt(selectedHE->startV) &&
-                    (*iter)->findHalfedgeStartingAt(activeHE->startV)) {
-                    commonLoop = *iter;
-                    break;
-                }
-            }
+            Loop*commonLoop = heDS.getCommonLoop(activeHE->startV, selectedHE->startV);
             if (!commonLoop) {
                 std::cout << "The selected vertices share no common loop!";
                 break;
@@ -296,7 +289,34 @@ void keyPressed(unsigned char key, int x, int y)
     case 'F':
         selectedHE = activeHE;
         break;
-	}
+
+    case 't':
+    case 'T': {
+        std::cout << "Enter coordinates for Center of Torus [x y z]: ";
+        float x, y, z, r, w;
+        int segC, segA;
+        std::cin >> x;
+        std::cin >> y;
+        std::cin >> z;
+        std::cout << "Enter torus radius: ";
+        std::cin >> r;
+        std::cout << "Enter torus width: ";
+        std::cin >> w;
+        std::cout << "Enter segment count [cross, along]: ";
+        std::cin >> segC;
+        std::cin >> segA;
+
+        heDS.createTorus(x,y,z,r,w,segC,segA);
+        activeHE = *heDS.getHalfEdges().rbegin();
+        break;
+    }
+    case 'z':
+    case 'Z': {
+        heDS.createTorus(0, 0, -1, 4, 1, 8, 16);
+        activeHE = *heDS.getHalfEdges().rbegin();
+        break;
+    }
+    }
 	glutPostRedisplay();
 }
 

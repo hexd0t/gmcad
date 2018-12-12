@@ -50,6 +50,7 @@ public:
 
      // creates a default example object
      void createDefaultObject();
+     void createTorus(float x, float y, float z, float r, float w, int segC, int segA);
 
      // clears the data structure completely
      void clearDS();
@@ -71,11 +72,16 @@ public:
      void MEV(Solid* solid, Loop* loop, Vertex* vertex1, Edge** edge, Vertex** vertex2, const Vec3f & coords2);
      void MEL(Solid* solid, Loop* loop1, Vertex* vertex1, Vertex* vertex2, Edge** edge, Loop** loop2, Face** face);
      void MVE(Solid* solid, Edge* edge1, Vertex** vertex, Edge** edge2, const Vec3f& coords);
+     void MEKH(Solid* solid, Vertex* outerVertex, Vertex* innerVertex, Loop* outerLoop, Loop* innerLoop, Edge** edge);
 
      void KEMH(Solid* solid, Edge* edge, Vertex* outerVertex, Loop** innerLoop);
+     void KPMH(Solid* solid, Loop* keepPeripheral, Loop* makeHole);
 
      // Euler-Poincare formula
 	 float EulerPoincareRings();
+
+     //Helper
+     Loop* getCommonLoop(Vertex* vertex1, Vertex* vertex2);
 
 private:
      
