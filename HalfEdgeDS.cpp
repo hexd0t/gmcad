@@ -118,6 +118,11 @@ void HalfEdgeDS::createDefaultObject()
      MEL(s, l, iV2, iV3, nullptr, nullptr, nullptr);
 
      KEMH(s, constructionEdge, v1, nullptr);
+
+     Vertex* iV4;
+     MEV(s, l, iV1, nullptr, &iV4, Vec3f(1.65f, 0.5f, 1.65f));
+     MEL(s, l, iV3, iV4, nullptr, nullptr, nullptr);
+     MEL(s, l, iV2, iV4, nullptr, nullptr, nullptr);
 }
 
 void HalfEdgeDS::createTorus(float x, float y, float z, float r, float w, int segC, int segA)
